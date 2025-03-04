@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "myomindchatbot-shd9",
+  "private_key_id": "322512f15adf8ecd1db7caf59108a0e2eb69782c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDgdlFjsoIv+wXQ\n+V4Yv+3s8pCMXEjjK0IJA4XCXO6+Wr43sSUR/c51un6ENEeS0I6wCWidPmnPUa/c\n+wgNEKxDMXGG8JxLiM/WGX0NwWkFJ5bn5bw1aUpWbb2AovtXfDn4GAKyNTFTHNZr\nx3KcIXesW31Rxaq3zK6e4y7tDeg8MdTZVUqytF+ZuSOOcRnjPw2PMJY0V+2Vhhwr\nwxoj6KF+CbnKh9h/wuxfr5KQ7nAFce30nseOF2lzXZ5htfjEfAehWjtKHJWDR8B4\nORkyl1RmoR6HlJiwho8A0RS6ebarxUGlhAworRIq91PYfOq4eOI/fWr10hWs3ZBR\nZFreKXVJAgMBAAECggEAYhdSuh7ohc9NW2WemXJGp6XZRX2O3LeqxAWmDqpOKyG8\nvtnLOXGRKCG36E5weNhrgsKZ1R3RX6hzEj8h5ZPDtBmHY1EC/H9tVEMPQ1OicX47\nlFvxQ+YfdmW+ythuvmyraKAVjYtxYsDXc4JVs6VshwX0Xifj0y6/oO/nMfFB7AuJ\nPeBDipsiWIi0Wq7Sq1TvQnz3o+YjL0AxxBLLMjE8gg1t5+e8scEafGgvRnpS4PhM\ntHdUd9EBwcfIjTokKeRnXRyGqcdqmbzwxCyeravCQD7knL8KtFtdLqRqZLZioGmb\nWdUBJ5zsuYWypNKve/dngT/poyJttIkalAgrIRo9gQKBgQD24Yqv7ALrqfgpKAna\ns7knQb5O+330RqnciIWtSVtcna4YmT0IWcq722CDbyGxJyNLAP7PmXlCBfJKIMch\nzVEMN2kY/bRaoULvTeqda1+mok55bu6m4yTaRpE1qxIbIyqGegV3hevZUMVI7u3p\nXvJrAbYcCo/QYHTdE4/rP0JcjwKBgQDowMm7298aO3Q0uHdubvRbXe1TOk0umupB\nUNJP63Wu0oocSER6rraUFCjph9P0r0w53P3+Zh/I3lE1LJm7eGDjX5wl9eYwShFP\nApI/eeUop2xYMTblnY9Qhr/KYlj0SUga9dwoi5ps/u3bn22k1HVF0rxXeQYNmkrR\nTPcNtuGspwKBgG2mtyZzuMha8bG16sqMUIwzEweZg9PfHsqoiFby4fU8w3qBdS4k\nU3skcLVvwpMgQvipNIOYMtc0NOzfqhJFUt4OLku/Qz+NqGEJRk8sxYsJQ7mDn9PX\nxyJ7fTtNA/mxoM2hnJP9k0cuLLG8DUc9uIX2eJ/zwPRYIw+eBKoDqsHZAoGBAIQo\nU2OTqM5gS89TnpzZ622lm4fSZti7pZ+IoKI4dA3cBgehESEH6yuRdtmDAlrA3mtM\ni/vTSODpOvsSZAgKhhkUxLjZMubgZ4uRTjE0qWW4CtDYwO8H08RJfsUPqqqqoYKN\nb4CmI/0Xkz9M+xjIef43djHEyicXILxPE0h6OxGpAoGBANG53pNyOIz28QUEgVuL\n/IeZCnNqy7+NCHEdq8hi27ZMZihzrI1ySi1Tp4/eQbVhEpVM9txOKiEaAH9zN0qt\nEJs7qaVUrgPmO3yhI5S3CheYfPi7pxxpvEyuRMa4ABSuVvBwyLBrXZ3c4zkbmpda\nAgjVl4YV6b4eheEbf1IvvX/e\n-----END PRIVATE KEY-----\n",
+  "client_email": "myomind-dialogflow-agent@myomindchatbot-shd9.iam.gserviceaccount.com",
+  "client_id": "103500901080582895916",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/myomind-dialogflow-agent%40myomindchatbot-shd9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
