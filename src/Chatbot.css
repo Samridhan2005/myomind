@@ -1,0 +1,39 @@
+.chatbot-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url("/heart.jpg") no-repeat center center/cover;
+}
+
+.chatbot-card {
+  width: 400px;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.chat-box {
+  height: 300px;
+  overflow-y: auto;
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.user-message {
+  text-align: right;
+  color: #007bff;
+  font-weight: bold;
+}
+
+.bot-message {
+  text-align: left;
+  color: #28a745;
+  font-weight: bold;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
