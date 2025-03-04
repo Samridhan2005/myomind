@@ -10,15 +10,15 @@ function Chatbot() {
   const sendMessage = async () => {
     if (!message.trim()) return; // Prevent empty messages
 
-    const newChat = { user: message, bot: "I'm learning to respond.. i will be trained in few weeks" };
+    const newChat = { user: message, bot: "Typing..." };
     setChatHistory([...chatHistory, newChat]); // Show "Typing..." effect
 
     try {
       const res = await axios.post("http://127.0.0.1:5000/chatbot", { message });
 
       // Update chat history with bot response
-      setChatHistory([...chatHistory, { user: message, bot: res.data.response }]);
-      setResponse(res.data.response);
+      setChatHistory([...chatHistory, { user: message, bot: res.data.reply }]);
+      setResponse(res.data.reply);
     } catch (error) {
       setResponse("Error: Could not connect to backend.");
     }
@@ -42,7 +42,7 @@ function Chatbot() {
           <input
             type="text"
             className="form-control"
-            placeholder="Ask any question..."
+            placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && sendMessage()} // Send message on Enter key
