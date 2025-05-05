@@ -90,7 +90,16 @@ function Chatbot() {
           {chatHistory.map((chat, index) => (
             <div key={index}>
               <p className="user-message"><strong>You:</strong> {chat.user}</p>
-              <p className="bot-message"><strong>Bot:</strong> {chat.bot}</p>
+              <p className="bot-message">
+  <strong>Bot:</strong><br />
+  {chat.bot.split('\n').map((line, idx) => (
+    <span key={idx}>
+      {line}
+      <br />
+    </span>
+  ))}
+</p>
+
             </div>
           ))}
         </div>
@@ -98,7 +107,7 @@ function Chatbot() {
           <input
             type="text"
             className="form-control"
-            placeholder="Type a message..."
+            placeholder="Ask any question..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}

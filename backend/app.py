@@ -5,6 +5,9 @@ from flask_cors import CORS
 import google.cloud.dialogflow_v2 as dialogflow
 import os
 import google.generativeai as genai
+import math
+import requests
+from flask import jsonify
 
 # Set up Gemini AI API Key
 genai.configure(api_key="AIzaSyCFxfJJHetG8Y16o91vhXf9KrapnIjeZUE")
@@ -70,6 +73,20 @@ def dialogflow_webhook():
 
     return jsonify({"fulfillmentText": "Sorry, I don't know how to handle that intent."})
 
+def calculate_distance(lat1, lon1, lat2, lon2):
+    R = 6371.0  # Earth radius in kilometers
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+
+    a = math.sin(dlat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    return R * c  # Distance in km
 
 def handle_hospital_search(req):
     parameters = req.get("queryResult", {}).get("parameters", {})
@@ -79,14 +96,13 @@ def handle_hospital_search(req):
     if not lat or not lng:
         return jsonify({"fulfillmentText": "Could you please share your location so I can find nearby hospitals?"})
 
-    # Overpass Query: find hospitals within 5km
     overpass_url = "https://overpass-api.de/api/interpreter"
     query = f"""
     [out:json];
     (
-      node["amenity"="hospital"](around:5000,{lat},{lng});
-      way["amenity"="hospital"](around:5000,{lat},{lng});
-      relation["amenity"="hospital"](around:5000,{lat},{lng});
+      node["amenity"="hospital"](around:10000,{lat},{lng});
+      way["amenity"="hospital"](around:10000,{lat},{lng});
+      relation["amenity"="hospital"](around:10000,{lat},{lng});
     );
     out center;
     """
@@ -98,18 +114,36 @@ def handle_hospital_search(req):
     data = response.json()
     elements = data.get("elements", [])
     if not elements:
-        return jsonify({"fulfillmentText": "I couldn't find any hospitals near your location."})
+        return jsonify({"fulfillmentText": "I couldn't find any hospitals within 10 km of your location."})
 
     hospitals = []
-    for el in elements[:3]:  # top 3 results
+    for el in elements:
         name = el.get("tags", {}).get("name", "Unnamed Hospital")
-        lat = el.get("lat") or el.get("center", {}).get("lat")
-        lon = el.get("lon") or el.get("center", {}).get("lon")
-        hospitals.append(f"{name} (Lat: {lat:.4f}, Lon: {lon:.4f})")
+        phone = el.get("tags", {}).get("contact:phone", "Phone not available")
+        hosp_lat = el.get("lat") or el.get("center", {}).get("lat")
+        hosp_lon = el.get("lon") or el.get("center", {}).get("lon")
 
-    reply = "Here are some nearby hospitals:\n" + "\n".join(hospitals)
-    return jsonify({"fulfillmentText": reply})
+        if hosp_lat is not None and hosp_lon is not None:
+            distance = calculate_distance(lat, lng, hosp_lat, hosp_lon)
+            hospitals.append({
+                "name": name,
+                "phone": phone,
+                "distance": distance
+            })
 
+    if not hospitals:
+        return jsonify({"fulfillmentText": "Hospitals were found, but no valid coordinates available to calculate distance."})
+
+    # Sort by distance
+    hospitals.sort(key=lambda x: x["distance"])
+
+    # Format response
+    reply = "Hospitals within 10 km radius:\n"
+    for idx, hosp in enumerate(hospitals, 1):
+        reply += f"{idx}. {hosp['name']} - {hosp['distance']:.2f} km away\n"
+
+
+    return jsonify({"fulfillmentText": reply.strip()})
 
 if __name__ == "__main__":
     app.run(debug=True)
