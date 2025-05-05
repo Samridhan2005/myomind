@@ -7,27 +7,22 @@ function Chatbot() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
 
-  // New state for map and hospital data
-  const [showMap, setShowMap] = useState(false);
-  const [hospitalData, setHospitalData] = useState([]);
-
   const sendMessage = async () => {
     if (!message.trim()) return;
-  
+
     const userMsg = message;
-    setMessage(""); // Clear input immediately
-  
-    // Add user message and placeholder bot message
+    setMessage("");
+
     setChatHistory((prev) => [...prev, { user: userMsg, bot: "Typing..." }]);
-  
+
     try {
       const isHospitalQuery = userMsg.toLowerCase().includes("hospital");
-  
+
       if (isHospitalQuery && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-  
+
           const payload = {
             queryResult: {
               intent: {
@@ -39,15 +34,15 @@ function Chatbot() {
               }
             }
           };
-  
+
           const res = await axios.post("http://127.0.0.1:5000/webhook", payload);
-  
+
           setChatHistory((prev) => {
             const updated = [...prev];
             updated[updated.length - 1].bot = res.data.fulfillmentText;
             return [...updated];
           });
-  
+
         }, () => {
           setChatHistory((prev) => {
             const updated = [...prev];
@@ -55,10 +50,10 @@ function Chatbot() {
             return [...updated];
           });
         });
-  
+
       } else {
         const res = await axios.post("http://127.0.0.1:5000/chatbot", { message: userMsg });
-  
+
         setChatHistory((prev) => {
           const updated = [...prev];
           updated[updated.length - 1].bot = res.data.reply;
@@ -73,46 +68,37 @@ function Chatbot() {
       });
     }
   };
-  
-  
 
   return (
-    <div 
-      className="chatbot-container d-flex justify-content-center align-items-center"
-      style={{
-        height: "100vh",
-        background: `url('/heart.jpg') no-repeat center center/cover`
-      }}
-    >
-      <div className="card shadow-lg p-4 chatbot-card">
-        <h2 className="text-center text-danger">💓 MyoMind Chatbot</h2>
-        <div className="chat-box">
-          {chatHistory.map((chat, index) => (
-            <div key={index}>
-              <p className="user-message"><strong>You:</strong> {chat.user}</p>
-              <p className="bot-message">
-  <strong>Bot:</strong><br />
-  {chat.bot.split('\n').map((line, idx) => (
-    <span key={idx}>
-      {line}
-      <br />
-    </span>
-  ))}
-</p>
+    <div className="chatbot-container">
+      <div className="chatbot-card">
+        <div className="chat-header">💓 MyoMind Chatbot</div>
 
+        <div className="chat-box d-flex flex-column">
+          {chatHistory.map((chat, index) => (
+            <div key={index} className="message-group">
+              <div className="chat-message user-bubble">
+                {chat.user}
+              </div>
+              <div className="chat-message bot-bubble">
+                {chat.bot.split("\n").map((line, i) => (
+                  <span key={i}>{line}<br /></span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
-        <div className="input-group">
+
+        <div className="input-area">
           <input
             type="text"
             className="form-control"
-            placeholder="Ask any question..."
+            placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}
           />
-          <button className="btn btn-danger" onClick={sendMessage}>Send</button>
+          <button onClick={sendMessage}>Send</button>
         </div>
       </div>
     </div>
