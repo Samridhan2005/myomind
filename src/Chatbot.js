@@ -13,19 +13,68 @@ function Chatbot() {
 
   const sendMessage = async () => {
     if (!message.trim()) return;
-
-    const newChat = { user: message, bot: "Typing..." };
-    setChatHistory([...chatHistory, newChat]);
-
+  
+    const userMsg = message;
+    setMessage(""); // Clear input immediately
+  
+    // Add user message and placeholder bot message
+    setChatHistory((prev) => [...prev, { user: userMsg, bot: "Typing..." }]);
+  
     try {
-      const res = await axios.post("http://127.0.0.1:5000/chatbot", { message });
-      setChatHistory([...chatHistory, { user: message, bot: res.data.reply }]);
+      const isHospitalQuery = userMsg.toLowerCase().includes("hospital");
+  
+      if (isHospitalQuery && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+  
+          const payload = {
+            queryResult: {
+              intent: {
+                displayName: "Find Nearby Hospitals"
+              },
+              parameters: {
+                latitude: lat,
+                longitude: lng
+              }
+            }
+          };
+  
+          const res = await axios.post("http://127.0.0.1:5000/webhook", payload);
+  
+          setChatHistory((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1].bot = res.data.fulfillmentText;
+            return [...updated];
+          });
+  
+        }, () => {
+          setChatHistory((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1].bot = "Location access denied. I can't find nearby hospitals without it.";
+            return [...updated];
+          });
+        });
+  
+      } else {
+        const res = await axios.post("http://127.0.0.1:5000/chatbot", { message: userMsg });
+  
+        setChatHistory((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1].bot = res.data.reply;
+          return [...updated];
+        });
+      }
     } catch (error) {
-      setChatHistory([...chatHistory, { user: message, bot: "Error: Could not connect to the chatbot." }]);
+      setChatHistory((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1].bot = "Error: Could not connect to the chatbot.";
+        return [...updated];
+      });
     }
-
-    setMessage("");
   };
+  
+  
 
   return (
     <div 

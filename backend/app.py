@@ -79,33 +79,37 @@ def handle_hospital_search(req):
     if not lat or not lng:
         return jsonify({"fulfillmentText": "Could you please share your location so I can find nearby hospitals?"})
 
-    location = f"{lat},{lng}"
-    radius = 5000  # 5km radius
-    type_ = "hospital"
-    api_key = "YOUR_GOOGLE_PLACES_API_KEY"  # Replace this with your actual key
+    # Overpass Query: find hospitals within 5km
+    overpass_url = "https://overpass-api.de/api/interpreter"
+    query = f"""
+    [out:json];
+    (
+      node["amenity"="hospital"](around:5000,{lat},{lng});
+      way["amenity"="hospital"](around:5000,{lat},{lng});
+      relation["amenity"="hospital"](around:5000,{lat},{lng});
+    );
+    out center;
+    """
 
-    url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    params = {
-        "location": location,
-        "radius": radius,
-        "type": type_,
-        "key": api_key
-    }
+    response = requests.post(overpass_url, data={"data": query})
+    if response.status_code != 200:
+        return jsonify({"fulfillmentText": "Sorry, I couldn't connect to the hospital data service."})
 
-    response = requests.get(url, params=params)
-    results = response.json().get("results", [])
-
-    if not results:
+    data = response.json()
+    elements = data.get("elements", [])
+    if not elements:
         return jsonify({"fulfillmentText": "I couldn't find any hospitals near your location."})
 
     hospitals = []
-    for r in results[:3]:  # Show top 3
-        name = r.get("name")
-        address = r.get("vicinity")
-        hospitals.append(f"{name} - {address}")
+    for el in elements[:3]:  # top 3 results
+        name = el.get("tags", {}).get("name", "Unnamed Hospital")
+        lat = el.get("lat") or el.get("center", {}).get("lat")
+        lon = el.get("lon") or el.get("center", {}).get("lon")
+        hospitals.append(f"{name} (Lat: {lat:.4f}, Lon: {lon:.4f})")
 
     reply = "Here are some nearby hospitals:\n" + "\n".join(hospitals)
     return jsonify({"fulfillmentText": reply})
+
 
 if __name__ == "__main__":
     app.run(debug=True)
