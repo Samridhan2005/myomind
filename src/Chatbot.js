@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Chatbot.css";
@@ -6,13 +6,15 @@ import "./Chatbot.css";
 function Chatbot() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
+  const chatBoxRef = useRef(null);
 
   const sendMessage = async () => {
     if (!message.trim()) return;
 
     const userMsg = message;
-    setMessage("");
+    setMessage(""); // Clear input
 
+    // Add user message and temporary "Typing..." for bot
     setChatHistory((prev) => [...prev, { user: userMsg, bot: "Typing..." }]);
 
     try {
@@ -36,51 +38,55 @@ function Chatbot() {
           };
 
           const res = await axios.post("http://127.0.0.1:5000/webhook", payload);
-
-          setChatHistory((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1].bot = res.data.fulfillmentText;
-            return [...updated];
-          });
+          animateBotResponse(res.data.fulfillmentText);
 
         }, () => {
-          setChatHistory((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1].bot = "Location access denied. I can't find nearby hospitals without it.";
-            return [...updated];
-          });
+          animateBotResponse("Location access denied. I can't find nearby hospitals without it.");
         });
 
       } else {
         const res = await axios.post("http://127.0.0.1:5000/chatbot", { message: userMsg });
-
-        setChatHistory((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1].bot = res.data.reply;
-          return [...updated];
-        });
+        animateBotResponse(res.data.reply);
       }
+
     } catch (error) {
-      setChatHistory((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1].bot = "Error: Could not connect to the chatbot.";
-        return [...updated];
-      });
+      animateBotResponse("Error: Could not connect to the chatbot.");
     }
   };
+
+  const animateBotResponse = (response) => {
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i <= response.length) {
+        setChatHistory((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1].bot = response.slice(0, i);
+          return updated;
+        });
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 25); // Speed of typing
+  };
+
+  useEffect(() => {
+    // Scroll to bottom when chat updates
+    if (chatBoxRef.current) {
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
   return (
     <div className="chatbot-container">
       <div className="chatbot-card">
         <div className="chat-header">💓 MyoMind Chatbot</div>
 
-        <div className="chat-box d-flex flex-column">
+        <div className="chat-box" ref={chatBoxRef}>
           {chatHistory.map((chat, index) => (
-            <div key={index} className="message-group">
-              <div className="chat-message user-bubble">
-                {chat.user}
-              </div>
-              <div className="chat-message bot-bubble">
+            <div key={index}>
+              <div className="chat-message user-message">{chat.user}</div>
+              <div className="chat-message bot-message">
                 {chat.bot.split("\n").map((line, i) => (
                   <span key={i}>{line}<br /></span>
                 ))}
