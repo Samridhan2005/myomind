@@ -7,6 +7,10 @@ function Chatbot() {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
 
+  // New state for map and hospital data
+  const [showMap, setShowMap] = useState(false);
+  const [hospitalData, setHospitalData] = useState([]);
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
