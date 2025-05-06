@@ -99,7 +99,7 @@ function Chatbot() {
           <input
             type="text"
             className="form-control"
-            placeholder="Type a message..."
+            placeholder="Ask any question..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && sendMessage()}
