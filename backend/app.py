@@ -8,6 +8,7 @@ import google.generativeai as genai
 import math
 import requests
 from flask import jsonify
+from geopy.distance import geodesic
 
 # Set up Gemini AI API Key
 genai.configure(api_key="AIzaSyCFxfJJHetG8Y16o91vhXf9KrapnIjeZUE")
@@ -113,37 +114,36 @@ def handle_hospital_search(req):
 
     data = response.json()
     elements = data.get("elements", [])
+
     if not elements:
-        return jsonify({"fulfillmentText": "I couldn't find any hospitals within 10 km of your location."})
+        return jsonify({"fulfillmentText": "I couldn't find any hospitals near your location."})
 
-    hospitals = []
+    user_location = (float(lat), float(lng))
+    hospital_list = []
+
     for el in elements:
-        name = el.get("tags", {}).get("name", "Unnamed Hospital")
-        phone = el.get("tags", {}).get("contact:phone", "Phone not available")
-        hosp_lat = el.get("lat") or el.get("center", {}).get("lat")
-        hosp_lon = el.get("lon") or el.get("center", {}).get("lon")
+        tags = el.get("tags", {})
+        name = tags.get("name", "Unnamed Hospital")
+        lat = el.get("lat") or el.get("center", {}).get("lat")
+        lon = el.get("lon") or el.get("center", {}).get("lon")
 
-        if hosp_lat is not None and hosp_lon is not None:
-            distance = calculate_distance(lat, lng, hosp_lat, hosp_lon)
-            hospitals.append({
-                "name": name,
-                "phone": phone,
-                "distance": distance
-            })
+        if lat and lon:
+            hospital_location = (lat, lon)
+            distance = geodesic(user_location, hospital_location).km
+            link = f"https://www.google.com/maps/search/?api=1&query={lat},{lon}"
+            hospital_list.append((name, distance, link))
 
-    if not hospitals:
-        return jsonify({"fulfillmentText": "Hospitals were found, but no valid coordinates available to calculate distance."})
+    # Sort by distance and take top 10
+    hospital_list.sort(key=lambda x: x[1])
+    top_hospitals = hospital_list[:10]
 
-    # Sort by distance
-    hospitals.sort(key=lambda x: x["distance"])
+    reply_lines = [f"{i+1}. <a href='{link}' target='_blank'>{name}</a> - {dist:.2f} km away"
+                   for i, (name, dist, link) in enumerate(top_hospitals)]
 
-    # Format response
-    reply = "Hospitals within 10 km radius:\n"
-    for idx, hosp in enumerate(hospitals, 1):
-        reply += f"{idx}. {hosp['name']} - {hosp['distance']:.2f} km away\n"
-
-
-    return jsonify({"fulfillmentText": reply.strip()})
+    reply = "These are the hospitals near you , click to view in map:\n" + "\n".join(reply_lines)
+    return jsonify({
+        "fulfillmentText": reply
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

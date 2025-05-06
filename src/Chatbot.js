@@ -87,9 +87,8 @@ function Chatbot() {
             <div key={index}>
               <div className="chat-message user-message">{chat.user}</div>
               <div className="chat-message bot-message">
-                {chat.bot.split("\n").map((line, i) => (
-                  <span key={i}>{line}<br /></span>
-                ))}
+              <div dangerouslySetInnerHTML={{ __html: chat.bot.replace(/\n/g, "<br />") }} />
+
               </div>
             </div>
           ))}
