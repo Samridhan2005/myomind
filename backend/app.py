@@ -7,11 +7,17 @@ import os
 import google.generativeai as genai
 import math
 import requests
+import cohere
 from flask import jsonify
 from geopy.distance import geodesic
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 from google.oauth2 import service_account
+
+
+# Initialize Cohere client
+co = cohere.Client("36aeG0xyrmqxQZwlaWDLOmEUb0gc2gtjaYXRsZOG")
+
 
 
 # Set up Gemini AI API Key
@@ -25,16 +31,27 @@ bcrypt = Bcrypt(app)
 client = MongoClient("mongodb://localhost:27017/")
 db = client["myomind"]  # Database name
 users_collection = db["users"]  # Collection name
+def get_cohere_response(user_message):
+    try:
+        response = co.chat(message=user_message)
+        return response.text
+    except Exception as e:
+        print("Cohere API error:", e)
+        return "Sorry, I'm having trouble generating a response right now."
 
 def get_gemini_response(user_message):
-    """Send user message to Gemini AI and get a response."""
-    model = genai.GenerativeModel("gemini-pro")  # Using the Gemini Pro model
-    response = model.generate_content(user_message)
-    
-    if response and response.candidates:
-        return response.candidates[0].content.parts[0].text
-    else:
-        return "I'm sorry, I couldn't generate a response. Please try again."
+    try:
+        model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
+        response = model.generate_content(user_message)
+        if response and response.candidates:
+            return response.candidates[0].content.parts[0].text
+        else:
+            return "I'm sorry, I couldn't generate a response. Please try again."
+    except Exception as e:
+        print("Gemini API error:", e)
+        return "Sorry, I'm having trouble generating a response right now."
+
+
 
 @app.route("/chat_with_gemini", methods=["POST"])
 def chat_with_gemini():
@@ -54,26 +71,26 @@ def chat_with_gemini():
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\ASWIN KUMAR\myomind-ui\backend\dialogflow-key.json"
 
 def detect_intent(text, session_id="12345"):
-    """Send user input to Dialogflow and return the response."""
-
-    # Path to your new service account JSON key
     credentials = service_account.Credentials.from_service_account_file(
         "C:/Users/ASWIN KUMAR/myomind-ui/backend/dialogflow-key.json"
     )
-
-    # Create Dialogflow client with credentials
     session_client = dialogflow.SessionsClient(credentials=credentials)
-
-    # Your project ID from the service account
     session = session_client.session_path("myomindchatbot-shd9", session_id)
 
-    # Prepare the input for Dialogflow
     text_input = dialogflow.TextInput(text=text, language_code="en")
     query_input = dialogflow.QueryInput(text=text_input)
 
-    # Send request to Dialogflow and return the response text
     response = session_client.detect_intent(session=session, query_input=query_input)
-    return response.query_result.fulfillment_text
+    result = response.query_result
+
+    # If intent is fallback or confidence is too low, use Cohere instead
+    if result.intent.is_fallback or result.intent_detection_confidence < 0.6:
+        print("Fallback triggered. Switching to Cohere...")
+        return get_cohere_response(text)
+
+    return result.fulfillment_text
+
+
 
 
 
@@ -193,7 +210,7 @@ def register():
         return jsonify({"message": "User registered successfully"}), 201
     except Exception as e:
         print(f"Error in /register: {e}")
-        return jsonify({"message": "An error occurred during registration."}), 500
+        return jsonify({"messnpmage": "An error occurred during registration."}), 500
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -217,3 +234,4 @@ def login():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
